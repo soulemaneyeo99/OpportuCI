@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h2>{{ opportunity.title }}</h2>
+  <p><strong>Catégorie :</strong> {{ opportunity.category }}</p>
+  <p>{{ opportunity.description }}</p>
+  {% if opportunity.link %}
+    <a href="{{ opportunity.link }}" class="btn btn-success" target="_blank">Voir l'opportunité</a>
+  {% endif %}
+</div>
+{% endblock %}

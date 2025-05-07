@@ -1,0 +1,27 @@
+# Ignore les environnements virtuels
+venv/
+.env
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+
+# Node.js / React
+node_modules/
+dist/
+build/
+*.log
+*.lock
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Systèmes
+Thumbs.db
+*.bak
+*.swp

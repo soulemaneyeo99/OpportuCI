@@ -1,0 +1,24 @@
+<!-- templates/opportunities/list.html -->
+{% for opportunity in opportunities %}
+    <div>
+        <h2>{{ opportunity.title }}</h2>
+        <p>{{ opportunity.description|truncatechars:100 }}</p>
+        <p>Deadline: {{ opportunity.deadline }}</p>
+        <a href="{{ opportunity.link }}" target="_blank">Voir l'opportunité</a><br>
+        <a href="{% url 'opportunity-detail' opportunity.pk %}">Modifier</a> |
+        <form method="POST" action="{% url 'opportunity-detail' opportunity.pk %}" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="_method" value="DELETE">
+            <button type="submit">Supprimer</button>
+        </form>
+    </div>
+
+    {% if messages %}
+    <ul>
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+{% endfor %}

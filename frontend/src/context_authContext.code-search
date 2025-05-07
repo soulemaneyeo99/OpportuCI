@@ -1,0 +1,14 @@
+# Query: context/authContext
+# ContextLines: 1
+
+2 results - 2 files
+
+frontend/src/components/Navbar.jsx:
+  2  import { Link } from 'react-router-dom';
+  3: import { useAuth } from '../contexts/AuthContext';
+  4  
+
+frontend/src/components/PrivateRoute.jsx:
+  1  import { Navigate } from 'react-router-dom';
+  2: import { useAuth } from '../contexts/AuthContext';
+  3  
