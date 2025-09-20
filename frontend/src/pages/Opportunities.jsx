@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { CalendarIcon, MapPinIcon, BriefcaseIcon, ClockIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "../contexts/AuthContext";
 import Layout from "../components/Layout";
 import OpportunityCard from "../components/OpportunityCard";
@@ -28,22 +27,24 @@ const Opportunities = () => {
   });
 
   const categories = [
-    "Scholarship",
-    "Internship",
-    "Job",
-    "Training",
-    "Competition",
-    "Event",
-    "Volunteering",
+    "Bourse",
+    "Stage",
+    "Emploi",
+    "Formation",
+    "Concours",
+    "Évènement",
+    "Volontariat",
   ];
 
   const locations = [
     "Abidjan",
     "Bouaké",
     "Yamoussoukro",
-    "San-Pédro",
+    "San Pedro",
     "Korhogo",
-    "Remote",
+    "Daloa",
+    "Man",
+    "Télétravail",
     "International",
   ];
 
@@ -62,11 +63,11 @@ const Opportunities = () => {
         params: { page: currentPage },
       });
       setOpportunities(response.data.results);
-      setTotalPages(Math.ceil(response.data.count / 10)); // Assuming 10 items per page
+      setTotalPages(Math.ceil(response.data.count / 10));
       setError(null);
     } catch (err) {
-      console.error("Failed to fetch opportunities:", err);
-      setError("Failed to load opportunities. Please try again later.");
+      console.error("Erreur lors du chargement des opportunités :", err);
+      setError("Impossible de charger les opportunités. Veuillez réessayer plus tard.");
     } finally {
       setLoading(false);
     }
@@ -75,7 +76,6 @@ const Opportunities = () => {
   const applyFilters = () => {
     let filtered = [...opportunities];
 
-    // Apply search filter
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(
@@ -86,17 +86,14 @@ const Opportunities = () => {
       );
     }
 
-    // Apply category filter
     if (filters.category) {
       filtered = filtered.filter((item) => item.category === filters.category);
     }
 
-    // Apply location filter
     if (filters.location) {
       filtered = filtered.filter((item) => item.location === filters.location);
     }
 
-    // Apply sorting
     if (filters.sortBy === "deadline") {
       filtered.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
     } else if (filters.sortBy === "created") {
@@ -111,7 +108,6 @@ const Opportunities = () => {
       ...prev,
       [name]: value,
     }));
-    // Reset to first page when filters change
     setCurrentPage(1);
   };
 
@@ -141,13 +137,13 @@ const Opportunities = () => {
     <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Opportunities</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Toutes les opportunités</h1>
           {isAuthenticated && (
             <Link
               to="/opportunities/create"
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
             >
-              Submit Opportunity
+              Publier une opportunité
             </Link>
           )}
         </div>
@@ -168,10 +164,10 @@ const Opportunities = () => {
           </div>
         ) : filteredOpportunities.length === 0 ? (
           <EmptyState
-            title="No opportunities found"
-            description="Try adjusting your filters or check back later for new opportunities."
+            title="Aucune opportunité trouvée"
+            description="Essayez d'ajuster vos filtres ou revenez plus tard."
             action={clearFilters}
-            actionText="Clear filters"
+            actionText="Réinitialiser les filtres"
           />
         ) : (
           <>
@@ -181,7 +177,6 @@ const Opportunities = () => {
               ))}
             </div>
 
-            {/* Pagination */}
             <div className="flex justify-center mt-8">
               <nav className="flex items-center space-x-2">
                 <button
@@ -193,9 +188,9 @@ const Opportunities = () => {
                       : "text-blue-600 hover:bg-blue-50"
                   }`}
                 >
-                  Previous
+                  Précédent
                 </button>
-                
+
                 {[...Array(totalPages)].map((_, i) => (
                   <button
                     key={i}
@@ -209,7 +204,7 @@ const Opportunities = () => {
                     {i + 1}
                   </button>
                 ))}
-                
+
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
@@ -219,7 +214,7 @@ const Opportunities = () => {
                       : "text-blue-600 hover:bg-blue-50"
                   }`}
                 >
-                  Next
+                  Suivant
                 </button>
               </nav>
             </div>

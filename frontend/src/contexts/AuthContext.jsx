@@ -1,155 +1,207 @@
 // src/contexts/AuthContext.jsx
-import axios from 'axios';
-import { createContext, useState, useEffect, useContext } from 'react';
+import { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import api from '../services/api';
 
 const AuthContext = createContext();
 
 // Hook personnalisé pour accéder au contexte
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [authInitialized, setAuthInitialized] = useState(false);
   const [error, setError] = useState(null);
 
-  // Vérifie l'état d'authentification au démarrage
+  // Fonction pour effacer les erreurs
+  const clearError = useCallback(() => setError(null), []);
+
+  // Initialisation du contexte d'authentification
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const user = api.getCurrentUser();
+        // Vérifie si un token existe dans le localStorage
+        if (!api.isAuthenticated()) {
+          return;
+        }
 
+        // Récupérer l'utilisateur courant si un token est présent
+        const user = await api.getCurrentUser();
+        
         if (user) {
           setCurrentUser(user);
-
+          
           try {
+            // Récupérer le profil utilisateur
             const profile = await api.getUserProfile();
-            setUserProfile(profile);
-          } catch (profileError) {
-            console.error("Erreur chargement profil:", profileError);
-
-            if (profileError.response?.status === 401) {
-              try {
-                await api.refreshToken();
-                const refreshedProfile = await api.getUserProfile();
-                setUserProfile(refreshedProfile);
-              } catch (refreshError) {
-                logout();
-              }
+            if (profile) {
+              setUserProfile(profile);
             }
+          } catch (profileError) {
+            console.error("Erreur lors du chargement du profil:", profileError);
+            // Ne pas déconnecter en cas d'erreur de profil
           }
         }
       } catch (err) {
-        setError(err);
-        logout();
+        console.error("Erreur d'initialisation de l'authentification:", err);
+        // Si erreur d'authentification, nettoyer les tokens éventuels
+        if (err.response?.status === 401) {
+          api.logout();
+        }
       } finally {
         setLoading(false);
+        setAuthInitialized(true);
       }
     };
 
     initAuth();
   }, []);
 
-  // Intercepteur pour rafraîchir automatiquement le token
-  useEffect(() => {
-    if (!currentUser) return;
-
-    const interceptor = axios.interceptors.response.use(
-      (response) => response,
-      async (error) => {
-        const originalRequest = error.config;
-
-        if (error.response?.status === 401 && !originalRequest._retry) {
-          originalRequest._retry = true;
-
-          try {
-            const refreshResult = await api.refreshToken();
-            if (refreshResult?.access) {
-              axios.defaults.headers.common['Authorization'] = `Bearer ${refreshResult.access}`;
-              originalRequest.headers['Authorization'] = `Bearer ${refreshResult.access}`;
-              return axios(originalRequest);
-            }
-          } catch (refreshError) {
-            logout();
-            return Promise.reject(refreshError);
-          }
-        }
-
-        return Promise.reject(error);
+  // Fonction de login optimisée pour gérer les erreurs détaillées
+  const login = useCallback(async ({ email, password }) => {
+    setLoading(true);
+    clearError();
+    
+    try {
+      // Validation des champs côté client avant d'appeler l'API
+      if (!email || !password) {
+        throw new Error('Email et mot de passe sont requis');
       }
-    );
+      
+      // Appel de l'API pour se connecter
+      const result = await api.login({ email, password });
+      
+      // Si l'API renvoie une erreur (pas une exception)
+      if (!result.success) {
+        // Structurer l'erreur pour qu'elle soit plus facilement utilisable dans les composants
+        const errorObj = new Error(result.error || 'Erreur lors de la connexion');
+        errorObj.fieldErrors = result.fieldErrors;
+        throw errorObj;
+      }
 
-    return () => {
-      axios.interceptors.response.eject(interceptor);
-    };
-  }, [currentUser]);
-
-  const login = async (username, password) => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const userData = await api.login(username, password);
-      setCurrentUser(userData);
-
-      const profile = await api.getUserProfile();
-      setUserProfile(profile);
-
-      return userData;
+      // Récupération des données utilisateur après connexion réussie
+      try {
+        const user = await api.getCurrentUser();
+        setCurrentUser(user);
+        
+        if (user) {
+          const profile = await api.getUserProfile();
+          setUserProfile(profile);
+        }
+      } catch (userError) {
+        console.error('Erreur lors de la récupération des informations utilisateur:', userError);
+        // On continue quand même, car l'authentification a réussi
+        // Les données utilisateur seront chargées lors d'une prochaine utilisation
+      }
+      
+      return result;
     } catch (err) {
-      setError(err.response?.data?.detail || 'Erreur lors de la connexion');
+      // Structurer l'erreur pour le composant Login
+      setError(err);
       throw err;
     } finally {
       setLoading(false);
     }
-  };
+  }, [clearError]);
 
-  const register = async (registerData) => {
+  // Inscription utilisateur
+  const register = useCallback(async (registerData) => {
+    setLoading(true);
+    clearError();
+    
     try {
-      setLoading(true);
-      setError(null);
-      return await api.register(registerData);
+      const result = await api.UserAPI.register(registerData);
+      return result;
     } catch (err) {
-      setError(err.response?.data || 'Erreur lors de l\'inscription');
-      throw err;
+      // Structurer l'erreur comme pour le login
+      const errorObj = new Error(err.response?.data?.detail || 'Erreur lors de l\'inscription');
+      errorObj.fieldErrors = err.response?.data;
+      setError(errorObj);
+      throw errorObj;
     } finally {
       setLoading(false);
     }
-  };
+  }, [clearError]);
 
-  const logout = () => {
+  // Déconnexion
+  const logout = useCallback(() => {
     api.logout();
     setCurrentUser(null);
     setUserProfile(null);
-  };
+    clearError();
+  }, [clearError]);
 
-  const updateProfile = async (profileData) => {
+  // Mise à jour du profil
+  const updateProfile = useCallback(async (profileData) => {
+    setLoading(true);
+    clearError();
+    
     try {
-      setLoading(true);
-      setError(null);
-
       const updatedProfile = await api.updateUserProfile(profileData);
       setUserProfile(updatedProfile);
       return updatedProfile;
     } catch (err) {
-      setError(err.response?.data || 'Erreur mise à jour profil');
-      throw err;
+      const errorObj = new Error(err.response?.data?.detail || 'Erreur lors de la mise à jour du profil');
+      errorObj.fieldErrors = err.response?.data;
+      setError(errorObj);
+      throw errorObj;
     } finally {
       setLoading(false);
     }
-  };
+  }, [clearError]);
+
+  // Méthode utilitaire pour vérifier si l'utilisateur est authentifié
+  const isAuthenticated = useCallback(() => {
+    return api.isAuthenticated() && !!currentUser;
+  }, [currentUser]);
+
+  // Rafraîchir les données utilisateur
+  const refreshUserData = useCallback(async () => {
+    if (!api.isAuthenticated()) {
+      return false;
+    }
+    
+    setLoading(true);
+    try {
+      const user = await api.getCurrentUser();
+      if (user) {
+        setCurrentUser(user);
+        const profile = await api.getUserProfile();
+        setUserProfile(profile);
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Erreur lors du rafraîchissement des données utilisateur:", err);
+      if (err.response?.status === 401) {
+        logout();
+      }
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [logout]);
 
   const value = {
     currentUser,
     userProfile,
     loading,
     error,
+    authInitialized,
     login,
     register,
     logout,
     updateProfile,
-    isAuthenticated: api.isAuthenticated
+    isAuthenticated,
+    refreshUserData,
+    clearError
   };
 
   return (

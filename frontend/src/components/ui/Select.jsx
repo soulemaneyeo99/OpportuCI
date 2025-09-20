@@ -16,6 +16,34 @@ import PropTypes from 'prop-types';
  * @param {Function} props.onChange - Fonction appelée lors du changement de sélection
  * @returns {JSX.Element} Composant de sélection
  */
+
+// In Register.jsx (add this before the Register component)
+export const EducationLevelSelect = ({ defaultValue, onChange }) => {
+  const educationLevels = [
+    { value: 'secondary', label: 'Secondaire' },
+    { value: 'baccalaureate', label: 'Baccalauréat' },
+    { value: 'bachelor', label: 'Licence' },
+    { value: 'master', label: 'Master' },
+    { value: 'phd', label: 'Doctorat' },
+    { value: 'other', label: 'Autre' }
+  ];
+
+  return (
+    <select
+      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+      defaultValue={defaultValue}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      <option value="">Sélectionnez votre niveau</option>
+      {educationLevels.map((level) => (
+        <option key={level.value} value={level.value}>
+          {level.label}
+        </option>
+      ))}
+    </select>
+  );
+};
+
 export const UserTypeSelect = ({ defaultValue = 'student', onChange }) => {
   const [selectedType, setSelectedType] = useState(defaultValue);
 

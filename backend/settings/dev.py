@@ -10,7 +10,6 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # CORS configuration for development
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
@@ -55,6 +54,12 @@ LOGGING = {
         },
     },
     'loggers': {
+        
+        'chat': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+        
         'django': {
             'handlers': ['console', 'file'],
             'level': 'INFO',

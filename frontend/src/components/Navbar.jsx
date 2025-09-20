@@ -1,339 +1,443 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import logo from '../assets/oppouCI.webp';
+import { 
+  Search, 
+  Bell, 
+  Plus, 
+  ChevronDown, 
+  Menu, 
+  X, 
+  MessageCircle,
+  User,
+  Settings,
+  LogOut,
+  LayoutDashboard,
+  Globe
+} from 'lucide-react';
+
+// Mock data pour la démo
+const mockUser = {
+  username: "Jean Kouassi",
+  email: "jean@oppouci.com",
+  profile: { avatar: null },
+  hasNotifications: true
+};
 
 const Navbar = () => {
-  const { user, logout, isAuthenticated } = useAuth();
+  // États pour les menus déroulants et mobile
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [opportunitiesDropdownOpen, setOpportunitiesDropdownOpen] = useState(false);
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const location = useLocation();
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Mock auth state - remplacez par votre contexte d'auth
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [user] = useState(mockUser);
+  
+  const [currentPath, setCurrentPath] = useState('/');
 
-  // Couleurs du drapeau ivoirien
-  const orangeCI = "#FF8200"; // Orange du drapeau ivoirien
-  const greenCI = "#009A44"; // Vert du drapeau ivoirien (pour certaines accentuations)
+  // Couleurs du thème OpportuCI
+  const orangeCI = "#FF8200";
+  const greenCI = "#009A44";
 
+  // Gestion du scroll pour l'effet de transparence
   useEffect(() => {
     const handleScroll = () => {
       const isScrolled = window.scrollY > 10;
-      if (isScrolled !== scrolled) {
-        setScrolled(isScrolled);
-      }
+      setScrolled(isScrolled);
     };
 
     document.addEventListener('scroll', handleScroll);
-    return () => {
-      document.removeEventListener('scroll', handleScroll);
-    };
-  }, [scrolled]);
+    return () => document.removeEventListener('scroll', handleScroll);
+  }, []);
 
-  // Ferme les menus lorsque la route change
+  // Ferme tous les menus lors du changement de route
   useEffect(() => {
     setMobileMenuOpen(false);
     setProfileDropdownOpen(false);
-  }, [location.pathname]);
+    setOpportunitiesDropdownOpen(false);
+    setLangDropdownOpen(false);
+  }, [currentPath]);
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      setProfileDropdownOpen(false);
-    } catch (error) {
-      console.error("Erreur lors de la déconnexion:", error);
-    }
-  };
-
-  const navItems = [
-    { name: 'Accueil', path: '/' },
-    { name: 'Bourses', path: '/opportunities/category/bourses' },
-    { name: 'Concours', path: '/opportunities/category/concours' },
-    { name: 'Formations', path: '/opportunities/category/formations' },
-    { name: 'Roadmaps', path: '/roadmaps' },
+  // Navigation principale
+  const mainNavItems = [
+    { name: 'Accueil', path: '/', exact: true },
+    { 
+      name: 'Opportunités', 
+      path: '/opportunities',
+      hasDropdown: true,
+      subItems: [
+        { name: 'Toutes les opportunités', path: '/opportunities' },
+        { name: 'Bourses d\'études', path: '/opportunities/bourses' },
+        { name: 'Concours & Examens', path: '/opportunities/concours' },
+        { name: 'Formations', path: '/opportunities/formations' },
+        { name: 'Stages & Emplois', path: '/opportunities/emplois' },
+        { name: 'Volontariat', path: '/opportunities/volontariat' }
+      ]
+    },
+    { name: 'Roadmaps Carrière', path: '/roadmaps' },
     { name: 'Actualités', path: '/actualites' },
+    { name: 'À propos', path: '/about' }
   ];
 
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setProfileDropdownOpen(false);
+  };
+
+  const isActivePath = (path, exact = false) => {
+    if (exact) return currentPath === path;
+    return currentPath.startsWith(path);
+  };
+
+  const handleNavigation = (path) => {
+    setCurrentPath(path);
+    // Dans votre vraie app, utilisez votre système de routing ici
+    console.log('Navigation vers:', path);
+  };
+
   return (
-    <nav 
-      className={`${scrolled ? 'shadow-md' : ''} fixed w-full z-50 transition-all duration-300`}
-      style={{ backgroundColor: orangeCI }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Link to="/">
-                <img 
-                  src={logo} 
-                  alt="OpportuCI Logo" 
-                  className="h-10 w-10 mr-3 rounded-full"
-                />
-              </Link>
-              <span className="ml-2 text-lg font-bold text-white">OpportuCI</span>
-            </div>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-4">
-              {navItems.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  className={`${
-                    location.pathname === item.path
-                      ? 'border-white text-white font-medium'
-                      : 'border-transparent text-white hover:border-white/70 hover:text-white/90'
-                  } inline-flex items-center px-2 pt-1 border-b-2 text-sm font-medium h-16`}
+    <>
+      <nav 
+        className={`fixed w-full z-50 transition-all duration-300 ${
+          scrolled 
+            ? 'shadow-lg backdrop-blur-md bg-white/95' 
+            : 'bg-white shadow-md'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            
+            {/* Logo et nom */}
+            <div className="flex items-center flex-shrink-0">
+              <button onClick={() => handleNavigation('/')} className="flex items-center group">
+                <div 
+                  className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform"
                 >
-                  {item.name}
-                </Link>
+                  <span className="text-white font-bold text-lg">O</span>
+                </div>
+                <div className="ml-3 hidden sm:block">
+                  <span className="text-xl font-bold bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">
+                    OpportuCI
+                  </span>
+                  <div className="text-xs text-gray-500 -mt-1">
+                    Ton avenir commence ici
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* Navigation desktop */}
+            <div className="hidden lg:flex items-center space-x-1">
+              {mainNavItems.map((item) => (
+                <div key={item.name} className="relative">
+                  {item.hasDropdown ? (
+                    <div className="relative">
+                      <button
+                        className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                          isActivePath(item.path)
+                            ? 'text-orange-600 bg-orange-50'
+                            : 'text-gray-700 hover:text-orange-600 hover:bg-gray-50'
+                        }`}
+                        onClick={() => setOpportunitiesDropdownOpen(!opportunitiesDropdownOpen)}
+                      >
+                        {item.name}
+                        <ChevronDown className={`ml-1 h-4 w-4 transition-transform ${
+                          opportunitiesDropdownOpen ? 'rotate-180' : ''
+                        }`} />
+                      </button>
+                      
+                      {opportunitiesDropdownOpen && (
+                        <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50">
+                          {item.subItems.map((subItem) => (
+                            <button
+                              key={subItem.name}
+                              onClick={() => handleNavigation(subItem.path)}
+                              className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                            >
+                              {subItem.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => handleNavigation(item.path)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        isActivePath(item.path, item.exact)
+                          ? 'text-orange-600 bg-orange-50'
+                          : 'text-gray-700 hover:text-orange-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      {item.name}
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
-          </div>
-          
-          <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            {/* Bouton Recherche */}
-            <Link
-              to="/search"
-              className="p-1 rounded-full text-white hover:text-white/80 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-orange-500"
-            >
-              <span className="sr-only">Rechercher</span>
-              <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </Link>
 
-            {/* Authentifié vs Non authentifié */}
-            {isAuthenticated ? (
-              <div className="ml-3 relative">
-                <div>
+            {/* Barre de recherche - Desktop */}
+            <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
+              <div className="relative w-full">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Rechercher des opportunités..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Actions à droite */}
+            <div className="flex items-center space-x-4">
+              
+              {/* Coach IA */}
+              <button
+                onClick={() => handleNavigation('/coach-ia')}
+                className="hidden sm:flex items-center px-3 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg text-sm font-medium hover:from-green-600 hover:to-green-700 transition-all shadow-sm"
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Coach IA
+              </button>
+
+              {isAuthenticated ? (
+                <>
+                  {/* Soumettre opportunité */}
                   <button
-                    type="button"
-                    className="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-orange-500"
-                    id="user-menu"
-                    aria-expanded="false"
-                    aria-haspopup="true"
-                    onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                    onClick={() => handleNavigation('/submit-opportunity')}
+                    className="hidden sm:flex items-center px-3 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 transition-all shadow-sm"
                   >
-                    <span className="sr-only">Menu utilisateur</span>
-                    {user?.profile?.avatar ? (
-                      <img
-                        className="h-8 w-8 rounded-full"
-                        src={user.profile.avatar}
-                        alt={user.username}
-                      />
-                    ) : (
-                      <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center text-orange-600 font-medium">
-                        {user?.username?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
-                      </div>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Publier
+                  </button>
+
+                  <button className="relative p-2 text-gray-600 hover:text-orange-600 transition-colors">
+                    <Bell className="h-5 w-5" />
+                    {user.hasNotifications && (
+                      <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse"></span>
                     )}
                   </button>
-                </div>
-                {profileDropdownOpen && (
-                  <div 
-                    className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10"
-                    role="menu"
-                    aria-orientation="vertical"
-                    aria-labelledby="user-menu"
-                  >
-                    <div className="px-4 py-2 text-xs text-gray-500 border-b border-gray-100">
-                      Connecté en tant que <span className="font-medium">{user?.username || user?.email}</span>
-                    </div>
-                    <Link
-                      to="/dashboard"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      role="menuitem"
-                    >
-                      Tableau de bord
-                    </Link>
-                    <Link
-                      to="/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      role="menuitem"
-                    >
-                      Mon profil
-                    </Link>
-                    <Link
-                      to="/settings"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      role="menuitem"
-                    >
-                      Paramètres
-                    </Link>
+
+                  {/* Menu profil */}
+                  <div className="relative">
                     <button
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                      role="menuitem"
+                      onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                      className="flex items-center space-x-2 p-1 rounded-full hover:bg-gray-50 transition-colors"
                     >
-                      Déconnexion
+                      {user?.profile?.avatar ? (
+                        <img
+                          src={user.profile.avatar}
+                          alt={user.username}
+                          className="h-8 w-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white text-sm font-medium">
+                          {user?.username?.charAt(0)?.toUpperCase() || 'U'}
+                        </div>
+                      )}
+                      <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${
+                        profileDropdownOpen ? 'rotate-180' : ''
+                      }`} />
                     </button>
+
+                    {profileDropdownOpen && (
+                      <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50">
+                        <div className="px-4 py-3 border-b border-gray-100">
+                          <p className="text-sm font-medium text-gray-900">{user.username}</p>
+                          <p className="text-xs text-gray-500">{user.email}</p>
+                        </div>
+                        
+                        <Link to="/dashboard" className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">
+                          <LayoutDashboard className="h-4 w-4 mr-3" />
+                          Tableau de bord
+                        </Link>
+                        <Link to="/profile" className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">
+                          <User className="h-4 w-4 mr-3" />
+                          Mon profil
+                        </Link>
+                        <Link to="/settings" className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">
+                          <Settings className="h-4 w-4 mr-3" />
+                          Paramètres
+                        </Link>
+                        
+                        <div className="border-t border-gray-100 mt-2 pt-2">
+                          <button
+                            onClick={handleLogout}
+                            className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50"
+                          >
+                            <LogOut className="h-4 w-4 mr-3" />
+                            Déconnexion
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                /* Utilisateur non connecté */
+                <div className="hidden sm:flex items-center space-x-3">
+                  <Link
+                    to="/login"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-orange-600 transition-colors"
+                  >
+                    Connexion
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg text-sm font-medium hover:from-orange-600 hover:to-orange-700 transition-all shadow-sm"
+                  >
+                    Rejoindre
+                  </Link>
+                </div>
+              )}
+
+              {/* Sélecteur de langue */}
+              <div className="relative">
+                <button
+                  onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+                  className="flex items-center p-2 text-gray-600 hover:text-orange-600 transition-colors"
+                >
+                  <Globe className="h-4 w-4" />
+                </button>
+                
+                {langDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-24 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-50">
+                    <button className="block w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 text-left">🇫🇷 FR</button>
+                    <button className="block w-full px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 text-left">🇬🇧 EN</button>
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="flex items-center space-x-3">
-                <Link
-                  to="/login"
-                  className="text-white hover:text-white/90 text-sm font-medium"
-                >
-                  Connexion
-                </Link>
-                <Link
-                  to="/register"
-                  className="inline-flex items-center px-3 py-1.5 border border-white text-sm font-medium rounded-md shadow-sm text-orange-500 bg-white hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-orange-500"
-                >
-                  S'inscrire
-                </Link>
-              </div>
-            )}
-          </div>
-          
-          {/* Hamburger menu pour mobile */}
-          <div className="flex items-center sm:hidden">
-            <button
-              type="button"
-              className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-white/80 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-              aria-controls="mobile-menu"
-              aria-expanded="false"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              <span className="sr-only">Ouvrir le menu</span>
-              {/* Icon when menu is closed */}
-              <svg
-                className={`${mobileMenuOpen ? 'hidden' : 'block'} h-6 w-6`}
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-              {/* Icon when menu is open */}
-              <svg
-                className={`${mobileMenuOpen ? 'block' : 'hidden'} h-6 w-6`}
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
 
-      {/* Menu mobile */}
-      <div
-        className={`${mobileMenuOpen ? 'block' : 'hidden'} sm:hidden bg-orange-500`}
-        id="mobile-menu"
-      >
-        <div className="pt-2 pb-3 space-y-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.name}
-              to={item.path}
-              className={`${
-                location.pathname === item.path
-                  ? 'bg-orange-600 border-white text-white'
-                  : 'border-transparent text-white hover:bg-orange-600 hover:border-white/70 hover:text-white/90'
-              } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
-            >
-              {item.name}
-            </Link>
-          ))}
+              {/* Menu mobile */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="lg:hidden p-2 text-gray-600 hover:text-orange-600 transition-colors"
+              >
+                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="pt-4 pb-3 border-t border-orange-600">
-          {isAuthenticated ? (
-            <>
-              <div className="flex items-center px-4">
-                <div className="flex-shrink-0">
-                  {user?.profile?.avatar ? (
-                    <img
-                      className="h-10 w-10 rounded-full"
-                      src={user.profile.avatar}
-                      alt={user.username}
-                    />
-                  ) : (
-                    <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center text-orange-600 font-medium">
-                      {user?.username?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
+
+        {/* Menu mobile */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden bg-white border-t border-gray-100">
+            {/* Recherche mobile */}
+            <div className="px-4 py-3 border-b border-gray-100">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Rechercher..."
+                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+              </div>
+            </div>
+
+            {/* Navigation mobile */}
+            <div className="py-2">
+              {mainNavItems.map((item) => (
+                <div key={item.name}>
+                  {item.hasDropdown ? (
+                    <div>
+                      <button
+                        onClick={() => setOpportunitiesDropdownOpen(!opportunitiesDropdownOpen)}
+                        className="flex items-center justify-between w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50"
+                      >
+                        {item.name}
+                        <ChevronDown className={`h-4 w-4 transition-transform ${
+                          opportunitiesDropdownOpen ? 'rotate-180' : ''
+                        }`} />
+                      </button>
+                      {opportunitiesDropdownOpen && (
+                        <div className="bg-gray-50">
+                          {item.subItems.map((subItem) => (
+                            <Link
+                              key={subItem.name}
+                              to={subItem.path}
+                              className="block px-8 py-2 text-sm text-gray-600 hover:text-orange-600"
+                            >
+                              {subItem.name}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
                     </div>
+                  ) : (
+                    <Link
+                      to={item.path}
+                      className={`block px-4 py-3 text-gray-700 hover:bg-gray-50 ${
+                        isActivePath(item.path, item.exact) ? 'text-orange-600 bg-orange-50' : ''
+                      }`}
+                    >
+                      {item.name}
+                    </Link>
                   )}
                 </div>
-                <div className="ml-3">
-                  <div className="text-base font-medium text-white">
-                    {user?.first_name && user?.last_name
-                      ? `${user.first_name} ${user.last_name}`
-                      : user?.username || user?.email}
-                  </div>
-                  <div className="text-sm font-medium text-white/80">
-                    {user?.email}
-                  </div>
-                </div>
-                <Link
-                  to="/search"
-                  className="ml-auto flex-shrink-0 p-1 rounded-full text-white hover:text-white/80 focus:outline-none focus:ring-2 focus:ring-white"
-                >
-                  <span className="sr-only">Rechercher</span>
-                  <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </Link>
-              </div>
-              <div className="mt-3 space-y-1">
-                <Link
-                  to="/dashboard"
-                  className="block px-4 py-2 text-base font-medium text-white hover:text-white/90 hover:bg-orange-600"
-                >
-                  Tableau de bord
-                </Link>
-                <Link
-                  to="/profile"
-                  className="block px-4 py-2 text-base font-medium text-white hover:text-white/90 hover:bg-orange-600"
-                >
-                  Mon profil
-                </Link>
-                <Link
-                  to="/settings"
-                  className="block px-4 py-2 text-base font-medium text-white hover:text-white/90 hover:bg-orange-600"
-                >
-                  Paramètres
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 text-base font-medium text-white hover:text-white/90 hover:bg-orange-600"
-                >
-                  Déconnexion
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="mt-3 space-y-1 px-2">
-              <Link
-                to="/login"
-                className="block px-4 py-2 text-base font-medium text-white hover:text-white/90 hover:bg-orange-600"
-              >
-                Connexion
-              </Link>
-              <Link
-                to="/register"
-                className="block mx-4 my-2 px-4 py-2 text-base font-medium text-orange-500 bg-white hover:bg-white/90 rounded-md"
-              >
-                S'inscrire
-              </Link>
+              ))}
             </div>
-          )}
-        </div>
-      </div>
-    </nav>
+
+            {/* Actions mobiles */}
+            <div className="border-t border-gray-100 py-3">
+              <Link
+                to="/coach-ia"
+                className="flex items-center px-4 py-3 text-green-600 hover:bg-green-50"
+              >
+                <MessageCircle className="h-5 w-5 mr-3" />
+                Coach IA
+              </Link>
+              
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    to="/submit-opportunity"
+                    className="flex items-center px-4 py-3 text-orange-600 hover:bg-orange-50"
+                  >
+                    <Plus className="h-5 w-5 mr-3" />
+                    Publier une opportunité
+                  </Link>
+                  <Link
+                    to="/dashboard"
+                    className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50"
+                  >
+                    <LayoutDashboard className="h-5 w-5 mr-3" />
+                    Tableau de bord
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center w-full px-4 py-3 text-red-600 hover:bg-red-50"
+                  >
+                    <LogOut className="h-5 w-5 mr-3" />
+                    Déconnexion
+                  </button>
+                </>
+              ) : (
+                <div className="px-4 space-y-2">
+                  <Link
+                    to="/login"
+                    className="block w-full py-2 text-center text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    Connexion
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="block w-full py-2 text-center text-white bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg hover:from-orange-600 hover:to-orange-700"
+                  >
+                    Rejoindre OpportuCI
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </nav>
+      
+      <div className="h-16"></div>
+    </>
   );
 };
 

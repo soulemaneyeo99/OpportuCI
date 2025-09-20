@@ -21,9 +21,13 @@ import LoadingSkeleton from "../components/LoadingSkeleton";
 import ErrorDisplay from "../components/ErrorDisplay";
 import ConfirmDialog from "../components/ConfirmDialog";
 
+
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 const OpportunityDetail = () => {
+  const [chatOpen, setChatOpen] = useState(false);
+
   const { id } = useParams();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -258,7 +262,9 @@ const OpportunityDetail = () => {
             onCancel={() => setShowConfirmDelete(false)}
             isDangerous={true}
           />
+          
         )}
+      
       </div>
     </Layout>
   );

@@ -12,7 +12,7 @@ const CategoryFilter = ({ categories, selectedCategory, onChange }) => {
         onChange={(e) => onChange(e.target.value)}
         className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
       >
-        <option value="">All Categories</option>
+        <option value="">Toutes les catégories</option>
         {categories.map((category) => (
           <option key={category} value={category}>
             {category}

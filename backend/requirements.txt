@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+langchain
+ollama
+langchain-community
+langchain-core
+pydantic
+langchain-ollama
+python-dotenv
+# backend/requirements.txt - Ajouts prioritaires
+django-redis==5.4.0          # Cache performant
+django-cors-headers==4.3.1    # CORS optimisé
+celery[redis]==5.3.4          # Tâches asynchrones
+django-extensions==3.2.3      # Outils de développement
+django-silk==5.0.4            # Profiling des performances

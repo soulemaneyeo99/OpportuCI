@@ -38,7 +38,7 @@ const SearchFilter = ({
             onChange={handleInputChange}
             className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
           >
-            <option value="">All Categories</option>
+            <option value="">Toutes les catégories</option>
             {categories.map((category) => (
               <option key={category} value={category}>
                 {category}
@@ -55,7 +55,7 @@ const SearchFilter = ({
             onChange={handleInputChange}
             className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
           >
-            <option value="">All Locations</option>
+            <option value="">Toute localisation</option>
             {locations.map((location) => (
               <option key={location} value={location}>
                 {location}
@@ -72,8 +72,8 @@ const SearchFilter = ({
             onChange={handleInputChange}
             className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
           >
-            <option value="deadline">Sort by Deadline</option>
-            <option value="created">Sort by Newest</option>
+            <option value="deadline">Trier par Deadline</option>
+            <option value="created">Plus récent</option>
           </select>
         </div>
 

@@ -16,3 +16,4 @@ export const register = async (username, email, password) => {
     password,
   });
 };
+
